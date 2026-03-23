@@ -29,6 +29,30 @@ export default function MatchPage() {
     setIsAnswering(false);
   }, [currentMatch?.questionIndex]);
 
+  // Block back gesture during match — show confirmation instead
+  useEffect(() => {
+    if (!currentMatch) return;
+
+    // Push a sentinel entry so back gesture triggers popstate, not navigation
+    window.history.pushState({ matchGuard: true }, '');
+
+    const handlePopState = () => {
+      // Re-push so the guard stays active if user cancels
+      const confirmed = window.confirm('Quer mesmo sair? O progresso da partida será perdido.');
+      if (confirmed) {
+        clearMatch();
+        navigate('/', { replace: true });
+      } else {
+        window.history.pushState({ matchGuard: true }, '');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentMatch, clearMatch, navigate]);
+
   useEffect(() => {
     if (!currentMatch && !hasFinalized.current) {
       const t = setTimeout(() => { if (!hasFinalized.current) navigate('/'); }, 500);
