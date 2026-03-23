@@ -6,10 +6,6 @@ A daily Brasileirão math quiz for Vitor. Play AS Atlético Mineiro against all 
 
 Every day Vitor plays one match. Each question he answers correctly scores a goal for the Galo. Wrong answers and skips score nothing (no punishment — learning should feel like playing). The opponent's goals are simulated. Match results (W/D/L) accumulate into a full Brasileirão standings table across 38 rounds.
 
-## Live
-
-**https://campeonatocanguru.duckdns.org**
-
 ## How It Works
 
 ```
