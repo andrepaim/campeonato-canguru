@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Question } from '../types';
 
 interface QuestionCardProps {
@@ -12,6 +12,27 @@ const OPTION_LETTERS: ('A' | 'B' | 'C' | 'D' | 'E')[] = ['A', 'B', 'C', 'D', 'E'
 
 export default function QuestionCard({ question, onAnswer, onSkip, disabled }: QuestionCardProps) {
   const [showLightbox, setShowLightbox] = useState(false);
+
+  const openLightbox = () => {
+    // Push a history entry so back gesture closes lightbox instead of navigating away
+    window.history.pushState({ lightbox: true }, '');
+    setShowLightbox(true);
+  };
+
+  const closeLightbox = () => {
+    setShowLightbox(false);
+  };
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (showLightbox) {
+        e.preventDefault();
+        closeLightbox();
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [showLightbox]);
 
   const questionImageUrl = `https://rotinadoatleticano.duckdns.org/canguru/questions/${question.id}.jpg`;
   const pageImageUrl = question.pageFile
@@ -30,7 +51,7 @@ export default function QuestionCard({ question, onAnswer, onSkip, disabled }: Q
             src={questionImageUrl}
             alt="Imagem da questão"
             className="w-full max-w-md mx-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => setShowLightbox(true)}
+            onClick={openLightbox}
           />
           <p className="text-xs text-gray-500 text-center mt-2">Toque para ampliar</p>
         </div>
@@ -74,11 +95,11 @@ export default function QuestionCard({ question, onAnswer, onSkip, disabled }: Q
       {showLightbox && pageImageUrl && (
         <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setShowLightbox(false)}
+          onClick={closeLightbox}
         >
           <button
             className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300"
-            onClick={() => setShowLightbox(false)}
+            onClick={closeLightbox}
           >
             ✕
           </button>
