@@ -2,115 +2,86 @@ import { TeamBadge } from '../components/TeamBadge';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useChampionshipStore } from '../store/championshipStore';
+import { getMatches } from '../api/client';
+import type { MatchRecord } from '../api/client';
 import { getTeamById, CAM } from '../data/teams';
 
 export default function ResultPage() {
   const navigate = useNavigate();
-  const { matches } = useChampionshipStore();
-  const [lastMatch, setLastMatch] = useState(matches[matches.length - 1]);
+  const [match, setMatch] = useState<MatchRecord | null>(null);
 
   useEffect(() => {
-    if (matches.length > 0) {
-      setLastMatch(matches[matches.length - 1]);
-    }
-  }, [matches]);
+    getMatches().then(matches => {
+      if (matches.length > 0) setMatch(matches[matches.length - 1]);
+    }).catch(console.error);
+  }, []);
 
-  if (!lastMatch) {
-    navigate('/');
-    return null;
+  if (!match) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-400 animate-pulse text-4xl">⚽</div>
+      </div>
+    );
   }
 
-  const opponent = getTeamById(lastMatch.opponentId);
-
-  const resultConfig = {
-    W: { icon: '🏆', title: 'VITÓRIA', color: 'text-green-400', bg: 'from-green-900/50' },
-    D: { icon: '🤝', title: 'EMPATE', color: 'text-yellow-400', bg: 'from-yellow-900/50' },
-    L: { icon: '😤', title: 'DERROTA', color: 'text-red-400', bg: 'from-red-900/50' },
-  };
-
-  const config = resultConfig[lastMatch.result];
+  const opponent = getTeamById(match.opponent_id);
+  const cfg = {
+    W: { icon: '🏆', title: 'VITÓRIA!',  bg: 'from-green-900 to-gray-950', color: 'text-green-400' },
+    D: { icon: '🤝', title: 'EMPATE',    bg: 'from-yellow-900 to-gray-950', color: 'text-yellow-400' },
+    L: { icon: '😤', title: 'DERROTA',   bg: 'from-red-900 to-gray-950',   color: 'text-red-400' },
+  }[match.result as 'W' | 'D' | 'L'];
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className={`min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b ${config.bg} to-galo-black`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className={`min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b ${cfg.bg}`}
     >
-      {/* Result Icon */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-        className="text-8xl mb-4"
-      >
-        {config.icon}
+      <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} className="text-6xl mb-4">
+        {cfg.icon}
       </motion.div>
 
-      {/* Title */}
-      <motion.h1
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className={`text-4xl font-bold ${config.color} mb-6`}
-      >
-        {config.title}
+      <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
+        className={`text-3xl font-black mb-8 ${cfg.color}`}>
+        {cfg.title}
       </motion.h1>
 
-      {/* Score Display */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="bg-gray-900 rounded-xl p-6 mb-6 border border-gray-800 w-full max-w-sm"
-      >
+      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}
+        className="bg-black/50 rounded-2xl p-6 w-full max-w-xs mb-6">
+        <div className="text-center text-xs text-gray-400 mb-4">PLACAR FINAL · Rodada {match.match_day}</div>
         <div className="flex items-center justify-between">
-          <div className="text-center flex-1">
-            <TeamBadge teamId="atletico-mg" size="lg" />
-            <div className="text-white font-semibold">{CAM.shortName}</div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-14 flex items-center justify-center">
+              <TeamBadge teamId="atletico-mg" size="lg" />
+            </div>
+            <span className="text-xs text-galo-gold">{CAM.shortName}</span>
           </div>
-
-          <div className="text-center px-4">
-            <div className="text-4xl font-bold text-white">
-              {lastMatch.camGoals} - {lastMatch.opponentGoals}
+          <div className="text-center">
+            <div className="text-5xl font-black">
+              <span className="text-galo-gold">{match.cam_goals}</span>
+              <span className="text-gray-500 mx-2">-</span>
+              <span className="text-white">{match.opp_goals}</span>
             </div>
           </div>
-
-          <div className="text-center flex-1">
-            <TeamBadge teamId={opponent?.id ?? ""} size="lg" />
-            <div className="text-white font-semibold">{opponent?.shortName}</div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-14 flex items-center justify-center">
+              <TeamBadge teamId={match.opponent_id} size="lg" />
+            </div>
+            <span className="text-xs text-gray-400">{opponent?.shortName}</span>
           </div>
+        </div>
+        <div className="text-center mt-4 pt-4 border-t border-gray-700">
+          <span className="text-sm text-gray-400">Pontos: </span>
+          <span className="text-xl font-bold text-galo-gold">+{match.points}</span>
         </div>
       </motion.div>
 
-      {/* Points */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-2xl font-bold text-galo-gold mb-8"
-      >
-        +{lastMatch.points} {lastMatch.points === 1 ? 'ponto' : 'pontos'}
-      </motion.div>
-
-      {/* Buttons */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="flex flex-col gap-3 w-full max-w-sm"
-      >
-        <button
-          onClick={() => navigate('/standings')}
-          className="w-full py-3 rounded-lg font-bold text-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors"
-        >
+      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.7 }}
+        className="flex flex-col gap-3 w-full max-w-xs">
+        <button onClick={() => navigate('/standings')} className="w-full py-3 bg-galo-gold text-black font-bold rounded-xl active:scale-95">
           Ver Tabela
         </button>
-        <button
-          onClick={() => navigate('/')}
-          className="w-full py-3 rounded-lg font-bold text-lg bg-galo-gold text-black hover:bg-yellow-400 transition-colors"
-        >
+        <button onClick={() => navigate('/')} className="w-full py-3 bg-gray-800 text-white font-medium rounded-xl active:scale-95">
           Início
         </button>
       </motion.div>
