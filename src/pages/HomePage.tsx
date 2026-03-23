@@ -46,7 +46,7 @@ export default function HomePage() {
     if (playedToday || starting) return;
     setStarting(true);
     try {
-      const response = await fetch('https://rotinadoatleticano.duckdns.org/canguru/questions.json');
+      const response = await fetch('/api/questions');
       const raw = await response.json();
       const allQuestions: Question[] = raw.map((q: Record<string, unknown>) => ({
         id: q.id,
