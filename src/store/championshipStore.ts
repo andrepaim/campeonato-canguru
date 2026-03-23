@@ -4,7 +4,7 @@
  */
 import { create } from 'zustand';
 import type { Question, QuestionAnswer } from '../types';
-import { calculateGoals, simulateOpponentGoals, calculateResult } from '../utils/scoring';
+import { calculateResult } from '../utils/scoring';
 
 interface CurrentMatchState {
   opponentId: string;
@@ -31,10 +31,10 @@ export const useChampionshipStore = create<StoreState & StoreActions>((set, get)
   currentQuestions: [],
   currentAnswers: [],
 
-  startMatch: (opponentId, questions, matchDay) => {
-    const opponentGoals = simulateOpponentGoals(matchDay * 7919 + 1337);
+  startMatch: (opponentId, questions, _matchDay) => {
+    // Always start 0:0 — goals are scored live during the match
     set({
-      currentMatch: { opponentId, camGoals: 0, opponentGoals, questionIndex: 0 },
+      currentMatch: { opponentId, camGoals: 0, opponentGoals: 0, questionIndex: 0 },
       currentQuestions: questions,
       currentAnswers: [],
     });
@@ -48,20 +48,22 @@ export const useChampionshipStore = create<StoreState & StoreActions>((set, get)
     if (!question) return 0;
 
     const isCorrect = question.correctAnswer === answer;
-    const goalsScored = calculateGoals(timeMs, isCorrect);
+    const camGoals = isCorrect ? 1 : 0;
+    const oppGoals = isCorrect ? 0 : 1;  // wrong answer = opponent scores
 
     set({
       currentMatch: {
         ...currentMatch,
-        camGoals: currentMatch.camGoals + goalsScored,
+        camGoals: currentMatch.camGoals + camGoals,
+        opponentGoals: currentMatch.opponentGoals + oppGoals,
         questionIndex: currentMatch.questionIndex + 1,
       },
       currentAnswers: [...currentAnswers, {
-        questionId, answer, timeMs, isCorrect, goalsScored,
+        questionId, answer, timeMs, isCorrect, goalsScored: camGoals,
       }],
     });
 
-    return goalsScored;
+    return camGoals;
   },
 
   skipQuestion: (questionId) => {

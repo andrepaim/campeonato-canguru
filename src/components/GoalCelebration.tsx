@@ -75,17 +75,29 @@ export default function GoalCelebration({ type, goals, onComplete }: GoalCelebra
     );
   }
 
-  // Wrong answer
+  // Wrong answer — opponent scores
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900/95"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-red-900 to-gray-950"
     >
-      <div className="text-6xl mb-6">❌</div>
-      <h1 className="text-2xl font-bold text-red-400 mb-2">Resposta errada</h1>
-      <p className="text-gray-500">Próxima questão...</p>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        className="text-8xl mb-6"
+      >
+        ⚽
+      </motion.div>
+      <motion.h1
+        initial={{ scale: 0.5 }}
+        animate={{ scale: 1 }}
+        className="text-3xl font-bold text-red-400 mb-4"
+      >
+        GOL DO ADVERSÁRIO!
+      </motion.h1>
+      <p className="text-gray-400">Resposta errada...</p>
     </motion.div>
   );
 }
