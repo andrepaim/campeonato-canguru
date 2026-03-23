@@ -1,73 +1,142 @@
-# React + TypeScript + Vite
+# 🦘⚽ Campeonato Canguru
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A daily Brasileirão math quiz for Vitor. Play AS Atlético Mineiro against all 20 Serie A teams — answer Canguru de Matemática questions to score goals and win the championship.
 
-Currently, two official plugins are available:
+## What It Is
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Every day Vitor plays one match. Each question he answers correctly scores a goal for the Galo. Wrong answers and skips score nothing (no punishment — learning should feel like playing). The opponent's goals are simulated. Match results (W/D/L) accumulate into a full Brasileirão standings table across 38 rounds.
 
-## React Compiler
+## Live
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**https://campeonatocanguru.duckdns.org**
 
-## Expanding the ESLint configuration
+## How It Works
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+Vitor answers math question
+        │
+        ▼
+Correct answer → ⚽ GOAL for Atlético Mineiro
+Wrong / Skip   → no goal (no punishment)
+        │
+        ▼
+After 6 questions → final score
+        │
+        ▼
+W = +3pts · D = +1pt · L = 0pts
+        │
+        ▼
+Saved to SQLite backend → standings update
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+**Question difficulty scales with opponent strength:**
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Opponent Strength | Easy | Medium | Hard | Examples |
+|---|---|---|---|---|
+| 1 (weakest) | 6 | 0 | 0 | Cuiabá, Criciúma, Vitória |
+| 2 | 4 | 2 | 0 | Bragantino, Fortaleza, Bahia |
+| 3 | 2 | 3 | 1 | São Paulo, Grêmio, Inter |
+| 4 | 1 | 2 | 3 | Corinthians, Fluminense, Botafogo |
+| 5 (hardest) | 0 | 2 | 4 | Palmeiras, Flamengo |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Stack
+
+### Frontend
+- **Vite 5** + **React 18** + **TypeScript**
+- **Tailwind CSS v3** — dark theme, Atlético Mineiro gold (#FFD700)
+- **Zustand** — in-progress match state only (ephemeral)
+- **react-router-dom v6**
+- **framer-motion** — result screen entrance animations
+
+### Backend
+- **FastAPI** + **SQLite** (same pattern as galo-routine/calorie-accountant)
+- **Port:** 3202
+- **Service:** `campeonato-canguru.service` (systemd)
+
+### Questions
+Fetched from `rotinadoatleticano.duckdns.org/canguru/questions.json` — 120 Canguru Ecolier questions (2021–2025, level E, 5º/6º ano).
+
+## Project Structure
+
 ```
+campeonato-canguru/
+├── src/                          # React frontend
+│   ├── api/
+│   │   └── client.ts             # API client (getState, getMatches, saveMatch, getStandings)
+│   ├── components/
+│   │   ├── GoalCelebration.tsx   # Full-screen goal/skip overlay
+│   │   ├── MiniStandings.tsx     # Top-5 + CAM standings widget
+│   │   ├── QuestionCard.tsx      # Question + options + image lightbox
+│   │   ├── TeamBadge.tsx         # Consistent team badge image component
+│   │   └── TimerBar.tsx          # (available but disabled — no time pressure)
+│   ├── data/
+│   │   ├── teams.ts              # 20 Serie A teams with strength ratings
+│   │   └── schedule.ts           # Opponent rotation (19 teams, 2 rounds)
+│   ├── pages/
+│   │   ├── HomePage.tsx          # Today's match card + mini standings + stats
+│   │   ├── MatchPage.tsx         # Active match: scoreboard + questions
+│   │   ├── ResultPage.tsx        # Match result with framer-motion animation
+│   │   ├── StandingsPage.tsx     # Full 20-team Brasileirão table
+│   │   └── HistoryPage.tsx       # All past matches
+│   ├── store/
+│   │   └── championshipStore.ts  # Zustand store (in-progress match only)
+│   └── utils/
+│       ├── questions.ts          # Question selection by difficulty mix
+│       └── scoring.ts            # Goal calc, result calc, simulation
+│
+├── backend/                      # FastAPI backend
+│   ├── main.py                   # App entry, static file serving
+│   ├── database.py               # SQLite init + context manager
+│   ├── models.py                 # Pydantic schemas
+│   ├── routers/
+│   │   └── matches.py            # API endpoints
+│   ├── utils/
+│   │   └── standings.py          # 20-team standings computation
+│   └── tests/
+│       ├── test_api.py           # 21 endpoint tests
+│       └── test_standings.py     # 17 logic unit tests
+│
+├── deploy.sh                     # Build + deploy to /root/campeonato-canguru/dist/
+├── vite.config.ts
+├── tailwind.config.js
+└── index.html
+```
+
+## API
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/status` | Health check |
+| `GET` | `/api/state` | `{match_day, last_played_date, used_question_ids}` |
+| `GET` | `/api/matches` | All completed matches, ordered by match_day |
+| `POST` | `/api/matches` | Save a completed match |
+| `GET` | `/api/standings` | Full 20-team championship table |
+
+**Standings logic:**
+- Atlético Mineiro = real match results from DB
+- Other 19 teams = deterministic seeded simulation per match_day
+- All other fixtures per round are simulated to keep the table alive
+
+## Deploy
+
+```bash
+# Build frontend + deploy to service
+bash deploy.sh
+
+# Run tests
+cd backend && python3 -m pytest tests/ -v
+
+# Restart service
+systemctl restart campeonato-canguru
+
+# Logs
+journalctl -u campeonato-canguru -f
+```
+
+## Data Persistence
+
+All championship state lives in SQLite at `/root/campeonato-canguru/data/campeonato.db`. Survives browser clears, device switches, server reboots. One match per calendar day enforced server-side (`last_played_date` check).
+
+## Team Badges
+
+Real Serie A shields downloaded from Wikipedia Commons and TheSportsDB, served at `/teams/{team-id}.png`.
