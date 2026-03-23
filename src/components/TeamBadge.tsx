@@ -12,7 +12,7 @@ const SIZE_MAP = {
 };
 
 export function TeamBadge({ teamId, size = 'md', className = '' }: TeamBadgeProps) {
-  const src = `/campeonato/teams/${teamId}.png`;
+  const src = `/teams/${teamId}.png`;
   const { box, img } = SIZE_MAP[size];
 
   return (
