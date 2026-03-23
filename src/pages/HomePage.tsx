@@ -16,14 +16,12 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [matchDay, setMatchDay] = useState(1);
-  const [lastPlayedDate, setLastPlayedDate] = useState<string | null>(null);
   const [usedIds, setUsedIds] = useState<string[]>([]);
   const [wins, setWins] = useState(0);
   const [draws, setDraws] = useState(0);
   const [losses, setLosses] = useState(0);
 
-  const today = new Date().toISOString().split('T')[0];
-  const playedToday = lastPlayedDate === today;
+  
 
   const opponentId = getOpponentForMatchDay(matchDay);
   const opponent = getTeamById(opponentId);
@@ -32,7 +30,6 @@ export default function HomePage() {
     Promise.all([getState(), getMatches()])
       .then(([state, matches]) => {
         setMatchDay(state.match_day);
-        setLastPlayedDate(state.last_played_date);
         setUsedIds(state.used_question_ids);
         setWins(matches.filter(m => m.result === 'W').length);
         setDraws(matches.filter(m => m.result === 'D').length);
@@ -43,7 +40,7 @@ export default function HomePage() {
   }, []);
 
   const handlePlay = async () => {
-    if (playedToday || starting) return;
+    if (starting) return;
     setStarting(true);
     try {
       const response = await fetch('/api/questions');
@@ -118,14 +115,12 @@ export default function HomePage() {
 
         <button
           onClick={handlePlay}
-          disabled={playedToday || starting}
+          disabled={starting}
           className={`w-full py-3 rounded-lg font-bold text-lg transition-all ${
-            playedToday
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-              : 'bg-galo-gold text-black hover:bg-yellow-400 active:scale-95'
+'bg-galo-gold text-black hover:bg-yellow-400 active:scale-95'
           }`}
         >
-          {starting ? 'Carregando...' : playedToday ? 'Já jogou hoje ✓' : 'JOGAR AGORA'}
+          {starting ? 'Carregando...' : 'JOGAR AGORA'}
         </button>
       </div>
 
