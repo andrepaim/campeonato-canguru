@@ -1,9 +1,8 @@
 import type { TeamStanding, Match } from '../types';
 import { teams } from '../data/teams';
 
-export function calculateGoals(timeMs: number, isCorrect: boolean): number {
-  if (!isCorrect) return 0;
-  return timeMs < 10000 ? 2 : 1;
+export function calculateGoals(_timeMs: number, isCorrect: boolean): number {
+  return isCorrect ? 1 : 0;
 }
 
 export function simulateOpponentGoals(seed: number): number {

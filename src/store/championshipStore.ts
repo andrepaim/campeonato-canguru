@@ -1,148 +1,102 @@
+/**
+ * Championship store — in-progress match state only (ephemeral, no persistence).
+ * All durable state (history, standings, match_day) lives in the backend API.
+ */
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { ChampionshipState, ChampionshipActions, Question, Match, QuestionAnswer } from '../types';
-import { teams } from '../data/teams';
-import { initStandings, calculateGoals, simulateOpponentGoals, calculateResult, updateStandings, simulateRound } from '../utils/scoring';
+import type { Question, QuestionAnswer } from '../types';
+import { calculateGoals, simulateOpponentGoals, calculateResult } from '../utils/scoring';
 
-const initialState: ChampionshipState = {
-  matchDay: 1,
-  lastPlayedDate: null,
-  matches: [],
-  standings: initStandings(teams),
-  usedQuestionIds: [],
+interface CurrentMatchState {
+  opponentId: string;
+  camGoals: number;
+  opponentGoals: number;
+  questionIndex: number;
+}
+
+interface StoreState {
+  currentMatch: CurrentMatchState | null;
+  currentQuestions: Question[];
+  currentAnswers: QuestionAnswer[];
+}
+
+interface StoreActions {
+  startMatch: (opponentId: string, questions: Question[], matchDay: number) => void;
+  submitAnswer: (questionId: string, answer: 'A' | 'B' | 'C' | 'D' | 'E', timeMs: number) => number;
+  skipQuestion: (questionId: string) => void;
+  clearMatch: () => void;
+}
+
+export const useChampionshipStore = create<StoreState & StoreActions>((set, get) => ({
   currentMatch: null,
   currentQuestions: [],
   currentAnswers: [],
-};
 
-export const useChampionshipStore = create<ChampionshipState & ChampionshipActions>()(
-  persist(
-    (set, get) => ({
-      ...initialState,
+  startMatch: (opponentId, questions, matchDay) => {
+    const opponentGoals = simulateOpponentGoals(matchDay * 7919 + 1337);
+    set({
+      currentMatch: { opponentId, camGoals: 0, opponentGoals, questionIndex: 0 },
+      currentQuestions: questions,
+      currentAnswers: [],
+    });
+  },
 
-      canPlayToday: () => {
-        const { lastPlayedDate } = get();
-        const today = new Date().toISOString().split('T')[0];
-        return lastPlayedDate !== today;
+  submitAnswer: (questionId, answer, timeMs) => {
+    const { currentMatch, currentQuestions, currentAnswers } = get();
+    if (!currentMatch) return 0;
+
+    const question = currentQuestions.find(q => q.id === questionId);
+    if (!question) return 0;
+
+    const isCorrect = question.correctAnswer === answer;
+    const goalsScored = calculateGoals(timeMs, isCorrect);
+
+    set({
+      currentMatch: {
+        ...currentMatch,
+        camGoals: currentMatch.camGoals + goalsScored,
+        questionIndex: currentMatch.questionIndex + 1,
       },
+      currentAnswers: [...currentAnswers, {
+        questionId, answer, timeMs, isCorrect, goalsScored,
+      }],
+    });
 
-      startMatch: (opponentId: string, questions: Question[]) => {
-        const { matchDay } = get();
-        const opponentGoals = simulateOpponentGoals(matchDay * 7919 + 1337);
+    return goalsScored;
+  },
 
-        set({
-          currentMatch: {
-            opponentId,
-            camGoals: 0,
-            opponentGoals,
-            questionIndex: 0,
-          },
-          currentQuestions: questions,
-          currentAnswers: [],
-        });
-      },
+  skipQuestion: (questionId) => {
+    const { currentMatch, currentAnswers } = get();
+    if (!currentMatch) return;
+    set({
+      currentMatch: { ...currentMatch, questionIndex: currentMatch.questionIndex + 1 },
+      currentAnswers: [...currentAnswers, {
+        questionId, answer: 'skip' as const, timeMs: 99999, isCorrect: false, goalsScored: 0,
+      }],
+    });
+  },
 
-      submitAnswer: (questionId: string, answer: 'A' | 'B' | 'C' | 'D' | 'E', timeMs: number): number => {
-        const { currentMatch, currentQuestions, currentAnswers } = get();
-        if (!currentMatch) return 0;
+  clearMatch: () => set({ currentMatch: null, currentQuestions: [], currentAnswers: [] }),
+}));
 
-        const question = currentQuestions.find(q => q.id === questionId);
-        if (!question) return 0;
+// Helper: build the match payload for the API from current store state
+export function buildMatchPayload(
+  store: StoreState,
+  matchDay: number,
+) {
+  const { currentMatch, currentAnswers } = store;
+  if (!currentMatch) throw new Error('No current match');
 
-        const isCorrect = question.correctAnswer === answer;
-        const goalsScored = calculateGoals(timeMs, isCorrect);
+  const { result, points } = calculateResult(currentMatch.camGoals, currentMatch.opponentGoals);
+  const today = new Date().toISOString().split('T')[0];
 
-        const newAnswer: QuestionAnswer = {
-          questionId,
-          answer,
-          timeMs,
-          isCorrect,
-          goalsScored,
-        };
-
-        set({
-          currentMatch: {
-            ...currentMatch,
-            camGoals: currentMatch.camGoals + goalsScored,
-            questionIndex: currentMatch.questionIndex + 1,
-          },
-          currentAnswers: [...currentAnswers, newAnswer],
-        });
-
-        return goalsScored;
-      },
-
-      skipQuestion: (questionId: string) => {
-        const { currentMatch, currentAnswers } = get();
-        if (!currentMatch) return;
-
-        const newAnswer: QuestionAnswer = {
-          questionId,
-          answer: 'skip',
-          timeMs: 10000,
-          isCorrect: false,
-          goalsScored: 0,
-        };
-
-        set({
-          currentMatch: {
-            ...currentMatch,
-            questionIndex: currentMatch.questionIndex + 1,
-          },
-          currentAnswers: [...currentAnswers, newAnswer],
-        });
-      },
-
-      finalizeMatch: (): Match => {
-        const { currentMatch, currentQuestions, currentAnswers, matchDay, matches, standings, usedQuestionIds } = get();
-
-        if (!currentMatch) {
-          throw new Error('No current match to finalize');
-        }
-
-        const { result, points } = calculateResult(currentMatch.camGoals, currentMatch.opponentGoals);
-        const today = new Date().toISOString().split('T')[0];
-
-        const match: Match = {
-          matchDay,
-          date: today,
-          opponentId: currentMatch.opponentId,
-          camGoals: currentMatch.camGoals,
-          opponentGoals: currentMatch.opponentGoals,
-          result,
-          points,
-          answers: currentAnswers,
-        };
-
-        // Update standings with CAM result
-        let newStandings = updateStandings(standings, match);
-
-        // Simulate other team matches
-        newStandings = simulateRound(newStandings, matchDay);
-
-        // Update used question IDs
-        const newUsedIds = [...usedQuestionIds, ...currentQuestions.map(q => q.id)];
-
-        set({
-          matchDay: matchDay + 1,
-          lastPlayedDate: today,
-          matches: [...matches, match],
-          standings: newStandings,
-          usedQuestionIds: newUsedIds,
-          currentMatch: null,
-          currentQuestions: [],
-          currentAnswers: [],
-        });
-
-        return match;
-      },
-
-      resetAll: () => {
-        set(initialState);
-      },
-    }),
-    {
-      name: 'campeonato-canguru-v1',
-    }
-  )
-);
+  return {
+    match_day: matchDay,
+    date: today,
+    opponent_id: currentMatch.opponentId,
+    cam_goals: currentMatch.camGoals,
+    opp_goals: currentMatch.opponentGoals,
+    result,
+    points,
+    answers: currentAnswers,
+  };
+}
