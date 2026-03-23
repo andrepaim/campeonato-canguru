@@ -1,9 +1,9 @@
+import { TeamBadge } from '../components/TeamBadge';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChampionshipStore } from '../store/championshipStore';
 import { getTeamById, CAM } from '../data/teams';
 import QuestionCard from '../components/QuestionCard';
-import TimerBar from '../components/TimerBar';
 import GoalCelebration from '../components/GoalCelebration';
 
 type CelebrationState = {
@@ -15,8 +15,7 @@ export default function MatchPage() {
   const navigate = useNavigate();
   const { currentMatch, currentQuestions, submitAnswer, skipQuestion, finalizeMatch } = useChampionshipStore();
   const [celebrationState, setCelebrationState] = useState<CelebrationState>(null);
-  const [timerKey, setTimerKey] = useState(0);
-  const [questionStartTime, setQuestionStartTime] = useState(Date.now());
+  const [questionStartTime] = useState(Date.now());
   const [isAnswering, setIsAnswering] = useState(false);
   const hasFinalized = useRef(false);
 
@@ -25,10 +24,8 @@ export default function MatchPage() {
   const questionNumber = currentMatch ? currentMatch.questionIndex + 1 : 0;
   const totalQuestions = 6;
 
-  // Reset timer when question changes
+  // Reset answering state when question changes
   useEffect(() => {
-    setQuestionStartTime(Date.now());
-    setTimerKey(prev => prev + 1);
     setIsAnswering(false);
   }, [currentMatch?.questionIndex]);
 
@@ -81,21 +78,6 @@ export default function MatchPage() {
     }
   }, [currentQuestion, isAnswering, skipQuestion, finalizeMatch, navigate]);
 
-  const handleTimeout = useCallback(() => {
-    if (!currentQuestion || isAnswering) return;
-
-    setIsAnswering(true);
-    skipQuestion(currentQuestion.id);
-    const freshMatch = useChampionshipStore.getState().currentMatch;
-    if (freshMatch && freshMatch.questionIndex >= totalQuestions) {
-      hasFinalized.current = true;
-      setCelebrationState({ type: 'timeout', goals: 0 });
-      setTimeout(() => { finalizeMatch(); navigate('/result', { replace: true }); }, 1500);
-    } else {
-      setCelebrationState({ type: 'timeout', goals: 0 });
-    }
-  }, [currentQuestion, isAnswering, skipQuestion, finalizeMatch, navigate]);
-
   const handleCelebrationEnd = useCallback(() => {
     setCelebrationState(null);
 
@@ -124,7 +106,7 @@ export default function MatchPage() {
       <div className="bg-gray-900 rounded-xl p-4 mb-4 border border-gray-800">
         <div className="flex items-center justify-between">
           <div className="text-center flex-1">
-            <div className="text-2xl">{CAM.emoji}</div>
+            <TeamBadge teamId="atletico-mg" size="sm" />
             <div className="text-xs text-gray-400">{CAM.shortName}</div>
           </div>
 
@@ -138,19 +120,11 @@ export default function MatchPage() {
           </div>
 
           <div className="text-center flex-1">
-            <div className="text-2xl">{opponent?.emoji}</div>
+            <TeamBadge teamId={opponent?.id ?? ""} size="sm" />
             <div className="text-xs text-gray-400">{opponent?.shortName}</div>
           </div>
         </div>
       </div>
-
-      {/* Timer Bar */}
-      <TimerBar
-        key={timerKey}
-        duration={10}
-        onTimeout={handleTimeout}
-        paused={isAnswering}
-      />
 
       {/* Question Card */}
       <QuestionCard

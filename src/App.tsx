@@ -7,7 +7,7 @@ import HistoryPage from './pages/HistoryPage';
 
 function App() {
   return (
-    <BrowserRouter basename="/campeonato">
+    <BrowserRouter basename="/">
       <div className="min-h-screen bg-galo-black flex flex-col">
         <main className="flex-1 pb-20">
           <Routes>

@@ -1,3 +1,4 @@
+import { TeamBadge } from './TeamBadge';
 import { useChampionshipStore } from '../store/championshipStore';
 import { getTeamById } from '../data/teams';
 
@@ -38,7 +39,7 @@ export default function MiniStandings() {
               <div className="text-center text-gray-600 text-xs py-1">···</div>
             )}
             <div
-              className={`grid grid-cols-[2rem_auto_3rem] gap-2 px-1 py-1.5 rounded text-sm ${
+              className={`grid grid-cols-[2rem_auto_3rem] gap-2 px-1 py-1.5 rounded text-sm items-center ${
                 isCAM ? 'bg-yellow-900/30' : ''
               }`}
             >
@@ -46,7 +47,7 @@ export default function MiniStandings() {
                 {standing.position}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm">{team?.emoji}</span>
+                <TeamBadge teamId={standing.teamId} size="xs" />
                 <span className={isCAM ? 'text-galo-gold font-semibold' : 'text-white'}>
                   {team?.shortName}
                 </span>

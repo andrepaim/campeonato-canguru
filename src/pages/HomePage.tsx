@@ -1,3 +1,4 @@
+import { TeamBadge } from '../components/TeamBadge';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChampionshipStore } from '../store/championshipStore';
@@ -42,7 +43,9 @@ export default function HomePage() {
         pageFile: q.pageFile,
       }));
 
-      const selectedQuestions = selectMatchQuestions(allQuestions, matchDay, usedQuestionIds);
+      const opponentTeam = getTeamById(opponentId);
+      const strength = (opponentTeam?.strength ?? 3) as 1 | 2 | 3 | 4 | 5;
+      const selectedQuestions = selectMatchQuestions(allQuestions, matchDay, usedQuestionIds, strength);
       startMatch(opponentId, selectedQuestions);
       navigate('/match');
     } catch (error) {
@@ -66,17 +69,21 @@ export default function HomePage() {
       <div className="bg-gray-900 rounded-xl p-6 mb-6 border border-gray-800">
         <h2 className="text-gray-400 text-sm uppercase tracking-wide mb-4">Jogo de Hoje</h2>
 
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-center flex-1">
-            <div className="text-3xl mb-1">{CAM.emoji}</div>
-            <div className="text-white font-semibold">{CAM.shortName}</div>
+        <div className="flex items-end justify-between mb-6">
+          <div className="flex flex-col items-center flex-1 gap-2">
+            <div className="h-14 flex items-center justify-center">
+              <TeamBadge teamId="atletico-mg" size="lg" />
+            </div>
+            <div className="text-white font-semibold text-sm">{CAM.shortName}</div>
           </div>
 
-          <div className="text-2xl text-gray-500 font-bold px-4">VS</div>
+          <div className="text-2xl text-gray-500 font-bold px-4 pb-4">VS</div>
 
-          <div className="text-center flex-1">
-            <div className="text-3xl mb-1">{opponent?.emoji}</div>
-            <div className="text-white font-semibold">{opponent?.shortName}</div>
+          <div className="flex flex-col items-center flex-1 gap-2">
+            <div className="h-14 flex items-center justify-center">
+              <TeamBadge teamId={opponent?.id ?? ""} size="lg" />
+            </div>
+            <div className="text-white font-semibold text-sm">{opponent?.shortName}</div>
           </div>
         </div>
 

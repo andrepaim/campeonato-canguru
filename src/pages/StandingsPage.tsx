@@ -1,3 +1,4 @@
+import { TeamBadge } from '../components/TeamBadge';
 import { useChampionshipStore } from '../store/championshipStore';
 import { getTeamById } from '../data/teams';
 
@@ -38,7 +39,7 @@ export default function StandingsPage() {
           return (
             <div
               key={standing.teamId}
-              className={`grid grid-cols-[2rem_auto_2rem_2rem_2rem_2rem_2rem_2rem_2rem_3rem] gap-1 px-2 py-2 text-sm border-t border-gray-800 ${
+              className={`grid grid-cols-[2rem_auto_2rem_2rem_2rem_2rem_2rem_2rem_2rem_3rem] gap-1 px-2 py-2 text-sm border-t border-gray-800 items-center ${
                 isCAM ? 'bg-yellow-900/30 border-l-2 border-l-yellow-400' : ''
               }`}
             >
@@ -46,7 +47,7 @@ export default function StandingsPage() {
                 {standing.position}
               </div>
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm">{team?.emoji}</span>
+                <TeamBadge teamId={standing.teamId} size="xs" />
                 <span className={`truncate ${isCAM ? 'text-galo-gold font-bold' : 'text-white'}`}>
                   {team?.shortName}
                 </span>

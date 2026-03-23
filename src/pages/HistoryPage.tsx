@@ -1,3 +1,4 @@
+import { TeamBadge } from '../components/TeamBadge';
 import { useChampionshipStore } from '../store/championshipStore';
 import { getTeamById, CAM } from '../data/teams';
 
@@ -56,7 +57,7 @@ export default function HistoryPage() {
 
               <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">{CAM.emoji}</span>
+                  <TeamBadge teamId="atletico-mg" size="sm" />
                   <span className="text-white font-semibold">{CAM.shortName}</span>
                 </div>
 
@@ -66,7 +67,7 @@ export default function HistoryPage() {
 
                 <div className="flex items-center gap-2">
                   <span className="text-white font-semibold">{opponent?.shortName}</span>
-                  <span className="text-xl">{opponent?.emoji}</span>
+                  <TeamBadge teamId={match.opponentId} size="sm" />
                 </div>
               </div>
             </div>

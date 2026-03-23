@@ -1,3 +1,4 @@
+import { TeamBadge } from '../components/TeamBadge';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -66,7 +67,7 @@ export default function ResultPage() {
       >
         <div className="flex items-center justify-between">
           <div className="text-center flex-1">
-            <div className="text-3xl mb-1">{CAM.emoji}</div>
+            <TeamBadge teamId="atletico-mg" size="lg" />
             <div className="text-white font-semibold">{CAM.shortName}</div>
           </div>
 
@@ -77,7 +78,7 @@ export default function ResultPage() {
           </div>
 
           <div className="text-center flex-1">
-            <div className="text-3xl mb-1">{opponent?.emoji}</div>
+            <TeamBadge teamId={opponent?.id ?? ""} size="lg" />
             <div className="text-white font-semibold">{opponent?.shortName}</div>
           </div>
         </div>
