@@ -89,7 +89,7 @@ export default function HomePage() {
   return (
     <div className="p-4">
       <div className="text-center mb-6">
-        <img src="/icon-192.png" alt="Brasileirão Canguru" className="w-10 h-10 mx-auto mb-2" />
+        <img src="/icon-192.png" alt="Brasileirão Canguru" className="w-10 h-10 mx-auto mb-2 rounded-xl" style={{mixBlendMode: 'screen'}} />
         <h1 className="text-2xl font-bold text-white">Campeonato Canguru</h1>
         <p className="text-galo-gold font-semibold">Rodada {matchDay}</p>
       </div>
