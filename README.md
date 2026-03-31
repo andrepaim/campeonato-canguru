@@ -2,6 +2,17 @@
 
 A daily Brasileirão math quiz for Vitor. Play AS Atlético Mineiro against all 20 Serie A teams — answer Canguru de Matemática questions to score goals and win the championship.
 
+## Screenshots
+
+<div align="center">
+
+| Home | Quiz | Classificação | Histórico |
+|:---:|:---:|:---:|:---:|
+| ![Home](screenshots/home.png) | ![Quiz](screenshots/quiz.png) | ![Tabela](screenshots/tabela.png) | ![Histórico](screenshots/historico.png) |
+| Today's match + standings preview | Answer questions to score goals | Full 20-team Brasileirão table | Past match results |
+
+</div>
+
 ## What It Is
 
 Every day Vitor plays one match. Each question he answers correctly scores a goal for the Galo. Wrong answers and skips score nothing (no punishment — learning should feel like playing). The opponent's goals are simulated. Match results (W/D/L) accumulate into a full Brasileirão standings table across 38 rounds.
