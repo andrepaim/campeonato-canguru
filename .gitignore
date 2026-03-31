@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Server-specific / private
+CLAUDE.md
+deploy.sh
+claude-build-prompt.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
