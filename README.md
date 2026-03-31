@@ -6,16 +6,12 @@ A daily Brasileirão math quiz for Vitor. Play AS Atlético Mineiro against all 
 
 <div align="center">
 
-| Home | Questão | Classificação | Histórico |
-|:---:|:---:|:---:|:---:|
-| ![Home](screenshots/home.png) | ![Quiz](screenshots/quiz.png) | ![Tabela](screenshots/tabela.png) | ![Histórico](screenshots/historico.png) |
-| Today's match + mini standings | Question card with image + answer options | Full 20-team Brasileirão table | All past match results |
+| Home | Questão | Prova expandida | Classificação | Histórico |
+|:---:|:---:|:---:|:---:|:---:|
+| ![Home](screenshots/home.png) | ![Quiz](screenshots/quiz.png) | ![Lightbox](screenshots/quiz-lightbox.png) | ![Tabela](screenshots/tabela.png) | ![Histórico](screenshots/historico.png) |
+| Today's match + mini standings | Question card with thumbnail | Tap image to see the full exam page | Full 20-team Brasileirão table | All past match results |
 
 </div>
-
-The quiz uses real [Canguru de Matemática](https://cangurudematematica.org.br/) questions with original images. Tap the image thumbnail in-game to expand it.
-
-![Quiz full page](screenshots/quiz-full.png)
 
 ## What It Is
 
