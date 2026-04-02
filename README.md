@@ -1,6 +1,6 @@
 # <img src="screenshots/icon.png" width="36" alt="Canguru Galo" /> Campeonato Canguru
 
-A daily Brasileirão math quiz. Answer [Canguru de Matemática](https://cangurudematematica.org.br/) questions to score goals for Atlético Mineiro and win the championship.
+> A daily Brasileirão math quiz — answer Canguru de Matemática questions to score goals for Atlético Mineiro and win the championship.
 
 ---
 
@@ -73,81 +73,118 @@ Saved to SQLite backend → standings update
 
 ## Stack
 
-### Frontend
-- **Vite 5** + **React 18** + **TypeScript**
-- **Tailwind CSS v3** — dark theme, Atlético Mineiro gold (#FFD700)
-- **Zustand** — in-progress match state only (ephemeral)
-- **react-router-dom v6**
-- **framer-motion** — result screen entrance animations
-
-### Backend
-- **FastAPI** + **SQLite**
-- **Port:** 3202
-
-### Questions
-Fetched from the Canguru de Matemática question bank — 120 Ecolier questions (2021–2025, level E, 5th/6th grade).
+| Layer | Tech |
+|---|---|
+| Frontend | Vite 5, React 18, TypeScript |
+| Styling | Tailwind CSS v3 — dark theme, Atlético Mineiro gold (#FFD700) |
+| State | Zustand — in-progress match state only (ephemeral) |
+| Routing | react-router-dom v6 |
+| Animation | framer-motion — result screen entrance animations |
+| Backend | FastAPI + SQLite |
+| Port | 3202 |
+| Questions | 120 Ecolier questions from Canguru de Matemática (2021–2025, level E, 5th/6th grade) |
 
 ---
 
-## Project Structure
+## Architecture
 
 ```
-campeonato-canguru/
-├── src/                          # React frontend
-│   ├── api/
-│   │   └── client.ts             # API client (getState, getMatches, saveMatch, getStandings)
-│   ├── components/
-│   │   ├── GoalCelebration.tsx   # Full-screen goal/skip overlay
-│   │   ├── MiniStandings.tsx     # Top-5 + CAM standings widget
-│   │   ├── QuestionCard.tsx      # Question + options + image lightbox
-│   │   ├── TeamBadge.tsx         # Consistent team badge image component
-│   │   └── TimerBar.tsx          # (available but disabled — no time pressure)
-│   ├── data/
-│   │   ├── teams.ts              # 20 Série A teams with strength ratings
-│   │   └── schedule.ts           # Opponent rotation (19 teams, 2 rounds)
-│   ├── pages/
-│   │   ├── HomePage.tsx          # Today's match card + mini standings + stats
-│   │   ├── MatchPage.tsx         # Active match: scoreboard + questions
-│   │   ├── ResultPage.tsx        # Match result with framer-motion animation
-│   │   ├── StandingsPage.tsx     # Full 20-team Brasileirão table
-│   │   └── HistoryPage.tsx       # All past matches
-│   ├── store/
-│   │   └── championshipStore.ts  # Zustand store (in-progress match only)
-│   └── utils/
-│       ├── questions.ts          # Question selection by difficulty mix
-│       └── scoring.ts            # Goal calc, result calc, simulation
-│
-├── backend/                      # FastAPI backend
-│   ├── main.py                   # App entry, static file serving
-│   ├── database.py               # SQLite init + context manager
-│   ├── models.py                 # Pydantic schemas
-│   ├── routers/
-│   │   └── matches.py            # API endpoints
-│   ├── utils/
-│   │   └── standings.py          # 20-team standings computation
-│   └── tests/
-│       ├── test_api.py           # 21 endpoint tests
-│       └── test_standings.py     # 17 logic unit tests
-│
-└── index.html
+┌──────────┐       ┌──────────────┐       ┌──────────┐
+│  Browser │──────▶│   FastAPI     │──────▶│  SQLite  │
+│  (React) │◀──────│   :3202      │◀──────│  (WAL)   │
+└──────────┘       └──────────────┘       └──────────┘
+     PWA            Serves dist/          data/campeonato.db
 ```
 
----
-
-## API
-
-| Method | Path | Description |
+| Component | Path | Description |
 |---|---|---|
-| `GET` | `/status` | Health check |
-| `GET` | `/api/state` | `{match_day, last_played_date, used_question_ids}` |
-| `GET` | `/api/matches` | All completed matches, ordered by match_day |
-| `POST` | `/api/matches` | Save a completed match |
-| `GET` | `/api/standings` | Full 20-team championship table |
+| **React frontend** | `src/` | Pages (Home, Match, Result, Standings, History), Zustand store, API client, components (QuestionCard, GoalCelebration, MiniStandings, TeamBadge, TimerBar) |
+| **Data layer** | `src/data/` | 20 Série A teams with strength ratings, opponent rotation schedule (19 teams, 2 rounds) |
+| **Utilities** | `src/utils/` | Question selection by difficulty mix, goal/result calculation, simulation |
+| **FastAPI app** | `backend/main.py` | App entry, static file serving, SPA catch-all route |
+| **Database** | `backend/database.py` | SQLite init + context manager (WAL mode) |
+| **Models** | `backend/models.py` | Pydantic schemas (MatchCreate, MatchOut, TeamStanding, AppState) |
+| **API routes** | `backend/routers/matches.py` | Endpoints: state, matches, standings, questions proxy, health check |
+| **Standings** | `backend/utils/standings.py` | 20-team standings — real results for Atlético MG, deterministic simulation for other teams |
+| **Tests** | `backend/tests/` | 38 tests covering API endpoints and standings logic |
+| **Database file** | `data/campeonato.db` | Single `matches` table: id, match_day, date, opponent_id, cam_goals, opp_goals, result, points, answers (JSON), created_at |
 
-**Standings logic:**
-- Atlético Mineiro = real match results from DB
-- Other 19 teams = deterministic seeded simulation per match_day
-- All other fixtures per round are simulated to keep the table alive
+---
+
+## Self-hosting
+
+### Requirements
+
+- Python 3.10+
+- Node.js 18+
+
+### Quick start
+
+```bash
+git clone https://github.com/andrepaim/campeonato-canguru.git
+cd campeonato-canguru
+
+# Backend dependencies
+pip install -r requirements.txt
+
+# Build frontend
+npm install
+npm run build          # outputs to dist/
+
+# Run
+cd backend
+python3 -m uvicorn main:app --host 127.0.0.1 --port 3202
+```
+
+The app will be available at `http://localhost:3202`. The backend serves the built frontend from `dist/` as static files.
+
+### Environment variables
+
+None required. All configuration is hardcoded (port 3202, database path relative to `backend/`).
+
+### Development
+
+**Backend** — run with auto-reload:
+
+```bash
+cd backend
+python3 -m uvicorn main:app --host 127.0.0.1 --port 3202 --reload
+```
+
+**Frontend** — run the Vite dev server (proxies `/api` and `/teams` to the backend at `:3202`):
+
+```bash
+npm run dev
+```
+
+### Deploy (systemd)
+
+Create `/etc/systemd/system/campeonato-canguru.service`:
+
+```ini
+[Unit]
+Description=Campeonato Canguru
+After=network.target
+
+[Service]
+Type=simple
+User=openclaw
+Group=openclaw
+WorkingDirectory=/home/openclaw/campeonato-canguru/backend
+ExecStart=/usr/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 3202
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Build and restart:
+
+```bash
+npm run build
+sudo systemctl restart campeonato-canguru
+```
 
 ---
 
@@ -160,6 +197,6 @@ cd backend && python3 -m pytest tests/ -v
 
 ---
 
-## Team Badges
+## License
 
-Real Série A shields served as static assets. All 20 teams included.
+MIT
