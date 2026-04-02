@@ -16,7 +16,7 @@ def test_empty_matches_all_zeros():
 def test_cam_win_updates_cam_record():
     matches = [{
         "match_day": 1,
-        "opponent_id": "cuiaba",
+        "opponent_id": "chapecoense",
         "cam_goals": 3,
         "opp_goals": 0,
         "result": "W",
@@ -60,13 +60,13 @@ def test_cam_draw_updates_record():
 def test_opponent_record_is_mirror_of_cam():
     matches = [{
         "match_day": 1,
-        "opponent_id": "cuiaba",
+        "opponent_id": "chapecoense",
         "cam_goals": 3,
         "opp_goals": 1,
         "result": "W",
     }]
     standings = compute_standings(matches)
-    cuiaba = next(s for s in standings if s["team_id"] == "cuiaba")
+    cuiaba = next(s for s in standings if s["team_id"] == "chapecoense")
     assert cuiaba["losses"] == 1
     assert cuiaba["goals_for"] == 1
     assert cuiaba["goals_against"] == 3
@@ -90,7 +90,7 @@ def test_standings_positions_are_1_to_20():
 
 def test_standings_sorted_desc_by_points():
     matches = [
-        {"match_day": 1, "opponent_id": "cuiaba",   "cam_goals": 3, "opp_goals": 0, "result": "W"},
+        {"match_day": 1, "opponent_id": "chapecoense",   "cam_goals": 3, "opp_goals": 0, "result": "W"},
         {"match_day": 2, "opponent_id": "criciuma",  "cam_goals": 2, "opp_goals": 2, "result": "D"},
         {"match_day": 3, "opponent_id": "flamengo",  "cam_goals": 0, "opp_goals": 2, "result": "L"},
     ]
@@ -100,7 +100,7 @@ def test_standings_sorted_desc_by_points():
 
 
 def test_goal_difference_computed_correctly():
-    matches = [{"match_day": 1, "opponent_id": "cuiaba",
+    matches = [{"match_day": 1, "opponent_id": "chapecoense",
                 "cam_goals": 5, "opp_goals": 1, "result": "W"}]
     standings = compute_standings(matches)
     cam = next(s for s in standings if s["team_id"] == "atletico-mg")
@@ -109,7 +109,7 @@ def test_goal_difference_computed_correctly():
 
 def test_multiple_matches_accumulate():
     matches = [
-        {"match_day": 1, "opponent_id": "cuiaba",   "cam_goals": 2, "opp_goals": 0, "result": "W"},
+        {"match_day": 1, "opponent_id": "chapecoense",   "cam_goals": 2, "opp_goals": 0, "result": "W"},
         {"match_day": 2, "opponent_id": "criciuma",  "cam_goals": 1, "opp_goals": 0, "result": "W"},
         {"match_day": 3, "opponent_id": "juventude", "cam_goals": 0, "opp_goals": 1, "result": "L"},
     ]
@@ -125,7 +125,7 @@ def test_multiple_matches_accumulate():
 
 def test_simulation_is_deterministic():
     """Same inputs always produce same standings."""
-    matches = [{"match_day": 1, "opponent_id": "cuiaba", "cam_goals": 2, "opp_goals": 0, "result": "W"}]
+    matches = [{"match_day": 1, "opponent_id": "chapecoense", "cam_goals": 2, "opp_goals": 0, "result": "W"}]
     s1 = compute_standings(matches)
     s2 = compute_standings(matches)
     assert s1 == s2

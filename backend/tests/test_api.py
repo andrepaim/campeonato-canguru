@@ -77,7 +77,7 @@ def test_initial_standings_all_zeros(client):
 MATCH_1 = {
     "match_day": 1,
     "date": "2026-03-23",
-    "opponent_id": "cuiaba",
+    "opponent_id": "chapecoense",
     "cam_goals": 4,
     "opp_goals": 1,
     "result": "W",
@@ -143,7 +143,7 @@ def test_standings_cam_has_points(client):
 def test_standings_opponent_has_loss(client):
     r = client.get("/api/standings")
     standings = r.json()
-    cuiaba = next(s for s in standings if s["team_id"] == "cuiaba")
+    cuiaba = next(s for s in standings if s["team_id"] == "chapecoense")
     assert cuiaba["played"] == 1
     assert cuiaba["losses"] == 1
     assert cuiaba["goals_for"] == 1
@@ -261,7 +261,7 @@ def test_all_20_teams_in_standings(client):
     expected = {
         "atletico-mg", "flamengo", "palmeiras", "corinthians", "fluminense",
         "botafogo", "sao-paulo", "internacional", "gremio", "athletico-pr",
-        "cruzeiro", "vasco", "bahia", "fortaleza", "bragantino",
-        "cuiaba", "juventude", "criciuma", "vitoria", "atletico-go",
+        "cruzeiro", "vasco", "bahia", "santos", "bragantino",
+        "chapecoense", "mirassol", "coritiba", "vitoria", "remo",
     }
     assert team_ids == expected
