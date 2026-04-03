@@ -40,7 +40,7 @@ def status():
 
 # ── Static frontend ────────────────────────────────────────────────────────────
 DIST = Path(__file__).resolve().parent.parent / "dist"
-TEAMS_DIR = Path("/var/www/rotinadoatleticano/campeonato/teams")
+TEAMS_DIR = Path(__file__).resolve().parent.parent / "assets" / "teams"
 
 _EXTRA = {
     ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",

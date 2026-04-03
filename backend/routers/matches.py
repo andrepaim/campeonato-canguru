@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from database import db
 from models import MatchCreate, MatchOut, TeamStanding, AppState
@@ -91,13 +92,8 @@ def get_state():
 
 
 @router.get("/questions")
-async def proxy_questions():
-    """Proxy Canguru questions from rotinadoatleticano to avoid CORS."""
-    import httpx
-    async with httpx.AsyncClient() as client:
-        r = await client.get(
-            "https://rotinadoatleticano.duckdns.org/canguru/questions.json",
-            timeout=15
-        )
-        r.raise_for_status()
-        return r.json()
+async def get_questions():
+    """Serve questions from local data directory."""
+    import json
+    questions_path = Path(__file__).resolve().parent.parent.parent / "data" / "questions" / "questions.json"
+    return json.loads(questions_path.read_text())
