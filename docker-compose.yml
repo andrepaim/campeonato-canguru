@@ -1,0 +1,11 @@
+services:
+  campeonato-canguru:
+    build: .
+    ports:
+      - "${PORT:-3202}:3202"
+    volumes:
+      - canguru-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  canguru-data:
