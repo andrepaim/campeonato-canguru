@@ -34,10 +34,9 @@ export default function QuestionCard({ question, onAnswer, onSkip, disabled }: Q
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showLightbox]);
 
-  const questionImageUrl = `https://rotinadoatleticano.duckdns.org/canguru/questions/${question.id}.jpg`;
-  const pageImageUrl = question.pageFile
-    ? `https://rotinadoatleticano.duckdns.org/canguru/pages/${question.pageFile}`
-    : null;
+  // Both the inline thumbnail and the lightbox use the self-hosted page image.
+  // Individual question crop images no longer exist since the self-hosting refactor.
+  const pageImageUrl = question.pageFile ? `/pages/${question.pageFile}` : null;
 
   return (
     <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
@@ -45,10 +44,10 @@ export default function QuestionCard({ question, onAnswer, onSkip, disabled }: Q
       <p className="text-white text-lg mb-4 leading-relaxed">{question.questionText}</p>
 
       {/* Question Image (if hasImage) */}
-      {question.hasImage && (
+      {question.hasImage && pageImageUrl && (
         <div className="mb-4">
           <img
-            src={questionImageUrl}
+            src={pageImageUrl}
             alt="Imagem da questão"
             className="w-full max-w-md mx-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
             onClick={openLightbox}
